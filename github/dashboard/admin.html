@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Management</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #0a0a0a; 
+            color: #fff; 
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #00ff88;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+        }
+        .btn-danger {
+            background: #ff4757;
+            color: #fff;
+        }
+        .btn-ban {
+            background: #8b0000;
+            color: #fff;
+        }
+        .btn-ban:hover {
+            background: #a00000;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,255,136,0.3);
+        }
+        .card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+            margin-bottom: 20px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: block;
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        th {
+            color: #00ff88;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        td {
+            color: #ccc;
+            font-size: 14px;
+        }
+        .status-active { color: #00ff88; }
+        .status-inactive { color: #ff4757; }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success { background: rgba(0,255,136,0.2); color: #00ff88; }
+        .badge-expired { background: rgba(255,71,87,0.2); color: #ff4757; }
+        .error-message {
+            background: rgba(255,71,87,0.1);
+            border: 1px solid #ff4757;
+            color: #ff4757;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .success-message {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .show { display: block; }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #00ff88;
+        }
+        .stat-label {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👑 Admin Panel - User Management</h1>
+        <button class="btn btn-primary" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-value" id="total-users">0</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="active-users">0</div>
+            <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="expired-users">0</div>
+            <div class="stat-label">Expired</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="new-today">0</div>
+            <div class="stat-label">New Today</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="color: #00ff88; margin-bottom: 15px;">➕ Add New User</h2>
+        <div class="error-message" id="error-msg"></div>
+        <div class="success-message" id="success-msg"></div>
+        
+        <form id="add-user-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Trade ID (PO Account)</label>
+                    <input type="text" id="new-trade-id" placeholder="e.g., 12345678" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="new-email" placeholder="user@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="new-name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>Affiliate Code (optional)</label>
+                    <input type="text" id="new-affiliate" placeholder="Your affiliate tracking code">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px; width: 100%;">
+                Create Account
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 style="color: #00ff88; margin-bottom: 15px;">👥 All Users</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Trade ID</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Affiliate</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="users-table">
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #666;">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Check admin access
+        async function checkAdmin() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                console.log('Admin check:', data); // Debug
+                
+                if (!data.user) {
+                    console.log('No user, redirecting to login');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                if (!data.user.isAdmin) {
+                    console.log('Not admin, logging out');
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                console.log('Admin verified, loading users');
+                loadUsers();
+            } catch (err) {
+                console.error('Admin check error:', err);
+                window.location.href = '/login';
+            }
+        }
+        checkAdmin();
+
+        // Load users
+        async function loadUsers() {
+            const response = await fetch('/api/admin/users');
+            const users = await response.json();
+            
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = '';
+            
+            let active = 0, expired = 0, newToday = 0;
+            const today = new Date().toDateString();
+            
+            users.forEach(user => {
+                const isExpired = user.expires_at && new Date(user.expires_at) < new Date();
+                const isActive = user.is_active && !isExpired;
+                
+                if (isActive) active++;
+                if (isExpired) expired++;
+                if (new Date(user.created_at).toDateString() === today) newToday++;
+                
+                const row = `
+                    <tr>
+                        <td>${user.trade_id}</td>
+                        <td>${user.email}</td>
+                        <td>${user.full_name || '-'}</td>
+                        <td>${user.affiliate_code || '-'}</td>
+                        <td class="${isActive ? 'status-active' : 'status-inactive'}">
+                            <span class="badge ${isActive ? 'badge-success' : 'badge-expired'}">
+                                ${isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td>${user.expires_at ? new Date(user.expires_at).toLocaleDateString() : 'Never'}</td>
+                        <td class="actions">
+                            <button class="btn btn-danger btn-small" onclick="deactivateUser('${user.trade_id}')">
+                                ${user.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button class="btn btn-ban btn-small" onclick="deleteUser('${user.trade_id}')">🚫 Ban</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            
+            document.getElementById('total-users').textContent = users.length;
+            document.getElementById('active-users').textContent = active;
+            document.getElementById('expired-users').textContent = expired;
+            document.getElementById('new-today').textContent = newToday;
+        }
+
+        // Add user
+        document.getElementById('add-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorMsg = document.getElementById('error-msg');
+            const successMsg = document.getElementById('success-msg');
+            errorMsg.classList.remove('show');
+            successMsg.classList.remove('show');
+            
+            const userData = {
+                tradeId: document.getElementById('new-trade-id').value,
+                email: document.getElementById('new-email').value,
+                fullName: document.getElementById('new-name').value,
+                affiliateCode: document.getElementById('new-affiliate').value
+            };
+            
+            const response = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                successMsg.textContent = 'User created successfully!';
+                successMsg.classList.add('show');
+                document.getElementById('add-user-form').reset();
+                loadUsers();
+            } else {
+                errorMsg.textContent = data.error || 'Failed to create user';
+                errorMsg.classList.add('show');
+            }
+        });
+
+        // Deactivate user
+        async function deactivateUser(tradeId) {
+            if (!confirm(`Are you sure you want to toggle status for ${tradeId}?`)) return;
+            
+            const response = await fetch(`/api/admin/users/${tradeId}/toggle`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                loadUsers();
+            }
+        }
+
+        // Delete/Ban user
+        async function deleteUser(tradeId) {
+            if (!confirm(`⚠️ Are you sure you want to BAN user ${tradeId}?\n\nThis will permanently delete the user from the system.`)) return;
+            
+            const response = await fetch(`/api/admin/users/${tradeId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                alert(`User ${tradeId} has been banned and deleted.`);
+                loadUsers();
+            } else {
+                alert('Failed to ban user.');
+            }
+        }
+
+        // Logout
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+        }
+
+        // Start admin check (will load users if admin verified)
+        checkAdmin();
+        setInterval(() => { if (document.visibilityState === 'visible') loadUsers(); }, 30000);
+    </script>
+</body>
+</html>
